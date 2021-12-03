@@ -10,7 +10,7 @@ library(dplyr)
 
 #==================================================================================================================================================================================================================================================#
 
-convert2csv <- function(dir){
+convert2csv <- function(dir,delim=' '){
   
   # Function Description: Converts .txt files to .csv files
   
@@ -24,7 +24,7 @@ convert2csv <- function(dir){
   listfile <- list.files(pattern = ".txt")                                # Creates a list of .txt file names
   
   for (file in listfile){                                                            # Loops through the elements in the list
-    data <- read.table(file,header = TRUE,sep=' ',stringsAsFactors = FALSE)
+    data <- read.table(file,header = TRUE,sep=delim,stringsAsFactors = FALSE)
     filename_csv <- sub(".txt",".csv",file)
     # Creates the filename "screen_###.csv"
     write.table(data,filename_csv,row.names=FALSE,col.names=TRUE, sep=",")           # Reads each .txt file and writes it to .csv file

@@ -2,8 +2,8 @@
 n <- "~/OneDrive - Johns Hopkins/Documents/Notre Dame/Semester 1/Introduction to Biocomputing/Rproject2021/"
 setwd(n)
 source(paste(n,"supportingFunctions.R",sep='/'))
-convert2csv(paste(n,"countryY/",sep='/')) # if there is more than one country whose screen data is in .txt format, copy and paste this line and specify country directory 
-                                          # Example: for countryZ, convert2csv(paste(n,"countryZ/",sep='/'))
+convert2csv(paste(n,"countryY/",sep='/'),delim = ' ') # if there is more than one country whose screen data is in .txt format, copy and paste this line and specify country directory 
+                                          # Example: for countryZ, convert2csv(paste(n,"countryZ/",sep='/'), delim = ' ')
 mergeDataFiles(n,NA_option=1)
 dataSummary(n,"allData.csv")
 

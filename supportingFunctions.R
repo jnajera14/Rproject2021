@@ -1,12 +1,12 @@
-setwd('~/OneDrive - Johns Hopkins/Documents/Notre Dame/Semester 1/Introduction to Biocomputing/Rproject2021/')
-
 install.packages("ggplot2")
 install.packages("cowplot")
 install.packages("data.table")
+install.packages("dplyr")
 
 library(data.table)
 library(ggplot2)
 library(cowplot)
+library(dplyr)
 
 #==================================================================================================================================================================================================================================================#
 
@@ -31,6 +31,7 @@ convert2csv <- function(dir){
   }
   
   print('Files have been written to .csv file in specified directory')
+  setwd("../")
 }
 
 #==================================================================================================================================================================================================================================================#
@@ -43,7 +44,7 @@ mergeDataFiles <- function(dir,NA_option=1){
   # Inputs:
   #   dir: directory containing directories for each country with screen data
   #   NA_option: defaults to a value of 1 which omits NAs in compiled data
-  #              if NA_option=0, NAs will be included in compiled data
+  #              if NA_option=2, NAs will be included in compiled data
   
   # Outputs:
   #   returns merged data from all countries in specified directory 
@@ -150,14 +151,14 @@ dataSummary <- function(dir,filename){
   print(numscreen)
   
   # Calculating positivity rate. A patient is considered positive if they have at least one marker
-  positives <- rowSums(data[,3:12])
-  positives <- as.logical(positives)
+  positive <- rowSums(data[,3:12])
+  positives <- as.logical(positive)
   posrate <- sum(positives)/length(positives) * 100
   print('The percent of patients that were infected is ')
   print(posrate)
-  data <- cbind(data, positives)
+  data <- cbind(data, positive, positives)
   
-  #Counting male vs female positive patients
+  # Counting male vs female positive patients and plotting per country
   male_count <- sum(data$positives[data$gender == 'male'])
   female_count <- sum(data$positives[data$gender == 'female'])
   print('The total number of male patients is ')
@@ -165,7 +166,14 @@ dataSummary <- function(dir,filename){
   print('The total number of female patients is ')
   print(female_count)
   
-  #Calculating the age distribution stats for patients
+  plot1 <- ggplot(data, aes(x = positive, color = gender, fill = gender)) +
+    geom_bar(position = 'dodge') +
+    scale_x_continuous(name = 'Number of markers', expand = c(0,0), breaks = seq(0, 6, 1)) + 
+    scale_y_continuous(name = 'Number of patients', expand = c(0,0)) + 
+    labs(title = 'Distribution of number of markers across gender')+
+    theme_classic()
+  
+  #Calculating the age distribution stats for patients and plotting per country
   age_mean <- mean(data$age[data$positives == TRUE])
   age_stdev <- sd(data$age[data$positives == TRUE])
   print('The average age of patients is ')
@@ -173,41 +181,22 @@ dataSummary <- function(dir,filename){
   print('The standard deviation of the age of patients is ')
   print(age_stdev)
   
-  # Plotting cases per country
+  plot2 <- ggplot(data, aes(x = age, color = country, fill = country)) + 
+    geom_histogram(binwidth = 5, position = 'identity', alpha = 0.3) + 
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    labs(title = 'Age Distribution Plot') + 
+    theme_classic()
   
-  data <- read.table(filename, header = TRUE, sep=',',stringsAsFactors = FALSE)
-  data$infected <- as.numeric(as.logical(rowSums(data[,3:12])))
+  final_plot <- plot_grid(plot1, plot2,
+            labels = c("a", "b"),
+            rel_widths = c(1, 0.85),
+            ncol = 2,
+            nrow = 1)
   
-  df1 <- data.frame()
+  print(final_plot)
   
-  for (Country in unique(data$country)) {
-    
-    day <- c()
-    totalInfected <- c()
-    
-    df <- data[data$country==Country,]
-    uniqueDay <- unique(df$dayofYear)
-    
-    for (i in 1:length(uniqueDay)){
-      
-      inf <- df[df$dayofYear==uniqueDay[i],]
-      totalInfected <- append(totalInfected,sum(inf$infected))
-      day <- append(day,uniqueDay[i])
-      
-    }
-    
-    df2 <- data.frame(day,totalInfected)
-    df2$country <- Country
-    df1 <- rbind(df1,df2)
-    
-  }
-  
-  ggplot(df1,aes(x=day,y=totalInfected,color=country))+
-    geom_point() +
-    theme_classic() +
-    xlab("Day") +
-    ylab("Total Infected Cases")
-  
+  ggsave("Summary Plot.jpg",plot=final_plot,width=12,height=8,dpi=500)
 }
 
 
